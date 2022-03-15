@@ -29,7 +29,7 @@ export class ApplicantController {
     }
 
     @ApiCreatedResponse({ type: Application })
-    @Post('create')
+    @Post('apply')
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
             destination: Helper.destinationPath,

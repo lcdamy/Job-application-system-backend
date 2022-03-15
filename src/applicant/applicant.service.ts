@@ -10,8 +10,13 @@ export class ApplicantService {
         private applicationRepository: Repository<Application>,
     ) { }
 
-    findAll(): Promise<Application[]> {
-        return this.applicationRepository.find();
+    findAll() {
+        return this.applicationRepository.find({
+            order: {
+                firstname: "ASC",
+                lastname: "ASC",
+            },
+        });
     }
 
     findOne(id: string): Promise<Application> {
