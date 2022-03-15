@@ -8,6 +8,9 @@ import { Application } from './entity/application';
 import { ApplicantModule } from './applicant/applicant.module';
 import path from 'path';
 import config from '../ormconfig';
+
+
+
 // import config from './ormconfig';
 
 @Module({

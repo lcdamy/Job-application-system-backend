@@ -18,7 +18,8 @@ export class ApplicantService {
         return this.applicationRepository.findOneOrFail(id);
     }
 
-    create(applicant) {
+    create(applicant, file) {
+        applicant.cv = file.filename;
         const newApplication = this.applicationRepository.create(applicant);
         return this.applicationRepository.save(newApplication);
     }

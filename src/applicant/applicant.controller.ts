@@ -1,8 +1,16 @@
-import { Body, Controller, Get, NotFoundException, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ApplicantService } from './applicant.service';
 import { ApplicantDto } from './dto/applicant.dto';
 import { Application } from '../entity/application';
+import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express/multer';
+import { diskStorage } from 'multer';
+import { Helper } from '../shared/helper';
+import * as fs from 'fs';
+import * as path from 'path';
+import { createReadStream } from 'fs';
+import { join } from 'path';
 
 @ApiTags('Applicant')
 @Controller('applicant')
@@ -11,12 +19,25 @@ export class ApplicantController {
 
     @ApiOkResponse({ type: Application, isArray: true })
     @Get()
+    @UseGuards(AuthGuard('jwt'))
     getApplicants(): any {
         const applicants = this.applicantService.findAll();
         if (!applicants) {
             throw new NotFoundException();
         }
         return applicants;
+    }
+
+    @ApiCreatedResponse({ type: Application })
+    @Post('create')
+    @UseInterceptors(FileInterceptor('file', {
+        storage: diskStorage({
+            destination: Helper.destinationPath,
+            filename: Helper.customFileName,
+        })
+    }))
+    async createApplicant(@Body() newApplicant: ApplicantDto, @UploadedFile() file: Express.Multer.File) {
+        return await this.applicantService.create(newApplicant, file);
     }
 
     @ApiCreatedResponse({ type: Application })
@@ -29,12 +50,6 @@ export class ApplicantController {
         return apply;
     }
 
-    @ApiCreatedResponse({ type: Application })
-    @Post('create')
-    async createApplicant(@Body() newApplicant: ApplicantDto) {
-        return await this.applicantService.create(newApplicant);
-    }
-
     @ApiOkResponse({ type: Application, isArray: false })
     @Get(':id')
     getApplicantById(@Param('id') id: string): any {
@@ -44,4 +59,15 @@ export class ApplicantController {
         }
         return applicant;
     }
+
+    @ApiOkResponse()
+    @Get('download/:file')
+    getFile(@Res() res: any, @Param('file') name: string) {
+        const file = createReadStream(join(process.cwd(), './uploadedFiles/cv/' + name));
+        file.pipe(res);
+    }
+
+
+
+
 }
